@@ -2,7 +2,7 @@
 //
 // File: playmidi.c
 //
-// Copyright 1203 Bill Farmer
+// Copyright 2013 Bill Farmer
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
 	if (result = MIDI_State(handle, &state) != MIDI_SUCCESS)
 	    break;
 
-	// sleep 20ms
-	usleep(200000);
+	// sleep 1s
+	sleep(1);
     }
 
     // close file
@@ -76,4 +76,6 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "playmidi: Can't shut down midi\n");
 	return 1;
     }
+
+    return 0;
 }
