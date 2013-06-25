@@ -59,7 +59,7 @@ MIDI_RESULT MIDI_Init()
 
     // get the library configuration
     pLibConfig = EAS_Config();
-    if (pLibConfig == NULL || pLibConfig->libVersion != LIB_VERSION)
+    if ((pLibConfig == NULL) || (pLibConfig->libVersion != LIB_VERSION))
 	return MIDI_FAILURE;
 
     // init library
@@ -111,11 +111,11 @@ MIDI_RESULT MIDI_PlayFile(char *path, MIDI_HANDLE *handle)
     file.fd = 0;
 
     // open file
-    if (result = EAS_OpenFile(pEASData, &file, handle) != EAS_SUCCESS)
+    if ((result = EAS_OpenFile(pEASData, &file, handle)) != EAS_SUCCESS)
 	return MIDI_FAILURE;
 
     // prepare
-    if (result =  EAS_Prepare(pEASData, *handle) != EAS_SUCCESS)
+    if ((result =  EAS_Prepare(pEASData, *handle)) != EAS_SUCCESS)
 	return MIDI_FAILURE;
 
     return MIDI_SUCCESS;
@@ -127,7 +127,7 @@ MIDI_RESULT MIDI_CloseFile(MIDI_HANDLE handle)
     EAS_RESULT result;
 
     // close midi stream
-    if (result = EAS_CloseFile(pEASData, handle) != EAS_SUCCESS)
+    if ((result = EAS_CloseFile(pEASData, handle)) != EAS_SUCCESS)
 	return MIDI_FAILURE;
 
     return MIDI_SUCCESS;
@@ -150,7 +150,7 @@ MIDI_RESULT MIDI_OpenStream(MIDI_HANDLE *handle)
     EAS_RESULT result;
 
     // open midi stream
-    if (result = EAS_OpenMIDIStream(pEASData, handle, NULL) !=
+    if ((result = EAS_OpenMIDIStream(pEASData, handle, NULL)) !=
 	EAS_SUCCESS)
 	return MIDI_FAILURE;
 
@@ -163,8 +163,8 @@ MIDI_RESULT MIDI_WriteStream(MIDI_HANDLE handle, char *data, long size)
     EAS_RESULT result;
 
     // write midi stream
-    if (result = EAS_WriteMIDIStream(pEASData, handle, data,
-				     size) != EAS_SUCCESS)
+    if ((result = EAS_WriteMIDIStream(pEASData, handle, data,
+				      size)) != EAS_SUCCESS)
 	return MIDI_FAILURE;
 
     return MIDI_SUCCESS;
@@ -176,7 +176,7 @@ MIDI_RESULT MIDI_CloseStream(MIDI_HANDLE handle)
     EAS_RESULT result;
 
     // close midi stream
-    if (result = EAS_CloseMIDIStream(pEASData, handle) != EAS_SUCCESS)
+    if ((result = EAS_CloseMIDIStream(pEASData, handle)) != EAS_SUCCESS)
 	return MIDI_FAILURE;
 
     return MIDI_SUCCESS;
@@ -194,7 +194,7 @@ MIDI_RESULT MIDI_Shutdown()
     pthread_join(thread, NULL);
 
     // close pcm
-    if (result = snd_pcm_close(handle) < 0)
+    if ((result = snd_pcm_close(handle)) < 0)
     {
 	free(buffer);
 	EAS_Shutdown(pEASData);
@@ -205,7 +205,7 @@ MIDI_RESULT MIDI_Shutdown()
     free(buffer);
 
     // shutdown library
-    if (result = EAS_Shutdown(pEASData) < 0)
+    if ((result = EAS_Shutdown(pEASData)) < 0)
 	return MIDI_FAILURE;
 
     return MIDI_SUCCESS;
@@ -228,9 +228,9 @@ void * render(void *data)
 	while (count < bufferSize)
 	{
 	    // render
-	    result = EAS_Render(pEASData,  buffer + count,
-				pLibConfig->mixBufferSize, &numGenerated);
-	    if (result != EAS_SUCCESS)
+	    if ((result = EAS_Render(pEASData,  buffer + count,
+				     pLibConfig->mixBufferSize,
+				     &numGenerated)) != EAS_SUCCESS)
 		break;
 
 	    // calculate count in samples

@@ -37,14 +37,14 @@ int main(int argc, char *argv[])
     }
 
     // init midi
-    if (result = MIDI_Init() != MIDI_SUCCESS)
+    if ((result = MIDI_Init()) != MIDI_SUCCESS)
     {
 	fprintf(stderr, "playmidi: Midi initialization failed\n");
 	return 1;
     }
 
     // play file
-    if (result = MIDI_PlayFile(argv[1], &handle) != MIDI_SUCCESS)
+    if ((result = MIDI_PlayFile(argv[1], &handle)) != MIDI_SUCCESS)
     {
 	fprintf(stderr, "playmidi: Can't open '%s' for playing\n", argv[1]);
 	MIDI_Shutdown();
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     }
 
     // close file
-    if (result = MIDI_CloseFile(handle) != MIDI_SUCCESS)
+    if ((result = MIDI_CloseFile(handle)) != MIDI_SUCCESS)
     {
 	fprintf(stderr, "playmidi: Can't close midi stream\n");
 	MIDI_Shutdown();
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     }
 
     // shutdown midi
-    if (result = MIDI_Shutdown() != MIDI_SUCCESS)
+    if ((result = MIDI_Shutdown()) != MIDI_SUCCESS)
     {
 	fprintf(stderr, "playmidi: Can't shut down midi\n");
 	return 1;
