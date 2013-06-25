@@ -37,17 +37,12 @@ the vectors folder. Try playing the two Carolan midi files. Sonivox
 uses midi streaming to play a couple of organ notes, then turn them
 off.
 
-I have tried this on a x86 based linux box. A few changes are required
-in the arm-wt-22k/Makefile:
+I have tried this on a i386 based linux system. A few changes are
+required in the arm-wt-22k/Makefile:
 
 	 # TARGET_ARCH = arm
 	 LOCAL_CFLAGS+= -O2 -fPIC \ 
 
-so as to not compile the arm assembler files and keep gcc happy, and
-in midi/midi.c:
-
-		EAS_PARAM_REVERB_ROOM);
-
-to change the reverb from chamber to room. Otherwise you get horrible
-cumulative feedback. No idea why, possibly something to do with the
-compile warnings above.
+so as to not compile the arm assembler files and keep gcc happy. The
+output sounds fine. However it doesn't work quite right on a i386-x64
+system, there is booming cumulative feedback.
