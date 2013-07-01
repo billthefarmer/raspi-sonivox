@@ -82,7 +82,7 @@ MIDI_RESULT MIDI_Init()
 				     SND_PCM_ACCESS_RW_INTERLEAVED,
 				     pLibConfig->numChannels,
 				     pLibConfig->sampleRate,
-				     1, 500000)) < 0)
+				     1, 50000)) < 0)
 	return MIDI_FAILURE;
 
     // calculate buffer size in samples
