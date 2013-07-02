@@ -59,14 +59,13 @@ LOCAL_SRC_FILES = \
 #	host_src/eas_main.c \
 #	host_src/eas_wave.c
 
-LOCAL_CFLAGS+= -O2 -mcpu=arm1176jzf-s -mfpu=vfp \
+LOCAL_CFLAGS+= -O2 -mcpu=arm1176jzf-s -mfpu=vfp -std=gnu99 \
 	-D UNIFIED_DEBUG_MESSAGES -D EAS_WT_SYNTH \
 	-D _IMELODY_PARSER -D _RTTTL_PARSER -D _OTA_PARSER \
 	-D _XMF_PARSER -D NUM_OUTPUT_CHANNELS=2 \
 	-D _SAMPLE_RATE_22050 -D MAX_SYNTH_VOICES=64 \
 	-D _8_BIT_SAMPLES -D _FILTER_ENABLED \
-	-D DLS_SYNTHESIZER \
-	-D _REVERB_ENABLED
+	-D DLS_SYNTHESIZER -D _REVERB_ENABLED
 
 # not using these options
 # -D _WAVE_PARSER
