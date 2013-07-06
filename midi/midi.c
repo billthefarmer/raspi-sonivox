@@ -2,7 +2,7 @@
 //
 // File: midi.c
 //
-// Copyright 1203 Bill Farmer
+// Copyright 2013 Bill Farmer
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ MIDI_RESULT MIDI_Init()
 
     // init library
     if ((result = EAS_Init(&pEASData)) != EAS_SUCCESS)
-        return MIDI_FAILURE;
+        return result;
 
     // select reverb preset and enable
     EAS_SetParameter(pEASData, EAS_MODULE_REVERB, EAS_PARAM_REVERB_PRESET,
@@ -75,7 +75,7 @@ MIDI_RESULT MIDI_Init()
     // open pcm stream
     if ((result = snd_pcm_open(&handle, device,
 			       SND_PCM_STREAM_PLAYBACK, 0)) < 0)
-	return MIDI_FAILURE;
+	return result;
 
     // set stream parameters
     if ((result = snd_pcm_set_params(handle, SND_PCM_FORMAT_S16,
@@ -83,7 +83,7 @@ MIDI_RESULT MIDI_Init()
 				     pLibConfig->numChannels,
 				     pLibConfig->sampleRate,
 				     1, 50000)) < 0)
-	return MIDI_FAILURE;
+	return result;
 
     // calculate buffer size in samples
     bufferSize = pLibConfig->mixBufferSize * pLibConfig->numChannels *
@@ -112,11 +112,11 @@ MIDI_RESULT MIDI_PlayFile(char *path, MIDI_HANDLE *handle)
 
     // open file
     if ((result = EAS_OpenFile(pEASData, &file, handle)) != EAS_SUCCESS)
-	return MIDI_FAILURE;
+	return result;
 
     // prepare
     if ((result =  EAS_Prepare(pEASData, *handle)) != EAS_SUCCESS)
-	return MIDI_FAILURE;
+	return result;
 
     return MIDI_SUCCESS;
 }
@@ -128,7 +128,7 @@ MIDI_RESULT MIDI_CloseFile(MIDI_HANDLE handle)
 
     // close midi stream
     if ((result = EAS_CloseFile(pEASData, handle)) != EAS_SUCCESS)
-	return MIDI_FAILURE;
+	return result;
 
     return MIDI_SUCCESS;
 }
@@ -140,7 +140,7 @@ MIDI_RESULT MIDI_State(MIDI_HANDLE handle, MIDI_STATE *state)
     // check stream state
     if ((result = EAS_State(pEASData, handle, state)) !=
 	EAS_SUCCESS)
-	return MIDI_FAILURE;
+	return result;
 
     return MIDI_SUCCESS;
 }
@@ -152,7 +152,7 @@ MIDI_RESULT MIDI_OpenStream(MIDI_HANDLE *handle)
     // open midi stream
     if ((result = EAS_OpenMIDIStream(pEASData, handle, NULL)) !=
 	EAS_SUCCESS)
-	return MIDI_FAILURE;
+	return result;
 
     return MIDI_SUCCESS;
 }
@@ -165,7 +165,7 @@ MIDI_RESULT MIDI_WriteStream(MIDI_HANDLE handle, char *data, long size)
     // write midi stream
     if ((result = EAS_WriteMIDIStream(pEASData, handle, data,
 				      size)) != EAS_SUCCESS)
-	return MIDI_FAILURE;
+	return result;
 
     return MIDI_SUCCESS;
 }
@@ -177,7 +177,7 @@ MIDI_RESULT MIDI_CloseStream(MIDI_HANDLE handle)
 
     // close midi stream
     if ((result = EAS_CloseMIDIStream(pEASData, handle)) != EAS_SUCCESS)
-	return MIDI_FAILURE;
+	return result;
 
     return MIDI_SUCCESS;
 }
@@ -198,7 +198,7 @@ MIDI_RESULT MIDI_Shutdown()
     {
 	free(buffer);
 	EAS_Shutdown(pEASData);
-	return MIDI_FAILURE;
+	return result;
     }
 
     // free buffer
@@ -206,13 +206,13 @@ MIDI_RESULT MIDI_Shutdown()
 
     // shutdown library
     if ((result = EAS_Shutdown(pEASData)) < 0)
-	return MIDI_FAILURE;
+	return result;
 
     return MIDI_SUCCESS;
 }
 
 // render
-void * render(void *data)
+void *render(void *data)
 {
     EAS_RESULT result;
     EAS_I32 numGenerated;
