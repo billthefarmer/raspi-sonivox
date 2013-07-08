@@ -48,13 +48,13 @@ output sounds fine. However it doesn't work quite right on a i386-x64
 system, there is booming cumulative feedback, which can be fixed by
 changing a line in midi/midi.c from:
 
-	EAS_SetParameter(pEASData, EAS_MODULE_REVERB, EAS_PARAM_REVERB_PRESET,
-		     EAS_PARAM_REVERB_CHAMBER);
+	EAS_SetParameter(pEASData, EAS\_MODULE\_REVERB, EAS\_PARAM\_REVERB\_PRESET,
+		     EAS\_PARAM\_REVERB\_CHAMBER);
 
 to:
 
-	EAS_SetParameter(pEASData, EAS_MODULE_REVERB, EAS_PARAM_REVERB_PRESET,
-		     EAS_PARAM_REVERB_ROOM);
+	EAS_SetParameter(pEASData, EAS\_MODULE\_REVERB, EAS\_PARAM\_REVERB\_PRESET,
+		     EAS\_PARAM\_REVERB\_ROOM);
 
-I think this is probably due to EAS_I32 being defined as a long which
+I think this is probably due to EAS\_I32 being defined as a long which
 is 64 bits on an x64 platform.
