@@ -45,4 +45,16 @@ required in the arm-wt-22k/Makefile:
 
 so as to not compile the arm assembler files and keep gcc happy. The
 output sounds fine. However it doesn't work quite right on a i386-x64
-system, there is booming cumulative feedback.
+system, there is booming cumulative feedback, which can be fixed by
+changing a line in midi/midi.c from:
+
+	EAS_SetParameter(pEASData, EAS_MODULE_REVERB, EAS_PARAM_REVERB_PRESET,
+		     EAS_PARAM_REVERB_CHAMBER);
+
+to:
+
+	EAS_SetParameter(pEASData, EAS_MODULE_REVERB, EAS_PARAM_REVERB_PRESET,
+		     EAS_PARAM_REVERB_ROOM);
+
+I think this is probably due to EAS_I32 being defined as a long which
+is 64 bits on an x64 platform.
