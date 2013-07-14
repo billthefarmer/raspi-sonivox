@@ -2,14 +2,14 @@
 
 CC = gcc
 
-CFLAGS = -O2 -L. -L/usr/local/lib -Wl,-R. -Wl,-R/usr/local/lib
+CFLAGS = -O2 -fPIC -L/usr/local/lib -Wl,-R/usr/local/lib -Wl,-z,relro
 LIBS = -lsonivox -lasound -lpthread
 ULIBS = -lmidi
 
 all:	libmidi.so playmidi sonivox
 
 libmidi.so:	midi.c
-	$(CC) -o $@ $< --shared $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $< --shared $(CFLAGS) -Wl,-soname,libmidi.so $(LIBS)
 
 playmidi:	playmidi.c
 	$(CC) -o $@ $< $(CFLAGS) $(ULIBS)

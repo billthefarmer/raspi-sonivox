@@ -77,7 +77,8 @@ MIDI_RESULT MIDI_Init()
 			       SND_PCM_STREAM_PLAYBACK, 0)) < 0)
 	return result;
 
-    // set stream parameters
+    // set stream parameters: 16bit, interleaved, channels and sample
+    // rate from the EAS config and 50ms latency
     if ((result = snd_pcm_set_params(handle, SND_PCM_FORMAT_S16,
 				     SND_PCM_ACCESS_RW_INTERLEAVED,
 				     pLibConfig->numChannels,
