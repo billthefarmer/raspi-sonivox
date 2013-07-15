@@ -40,21 +40,23 @@ off.
 I have tried this on a i386 based linux system. A few changes are
 required in the arm-wt-22k/Makefile:
 
-	 # TARGET_ARCH = arm
-	 LOCAL_CFLAGS+= -O2 -fPIC \ 
+	# TARGET_ARCH = arm
+	LOCAL_CFLAGS+= -O2 -std=gnu99 \ 
 
-so as to not compile the arm assembler files and keep gcc happy. The
-output sounds fine. However it doesn't work quite right on a i386-x64
-system, there is booming cumulative feedback, which can be fixed by
-changing a line in midi/midi.c from:
+so as to not compile the arm assembler files. The output sounds
+fine. However it doesn't work quite right on a i386-x64 system, there
+is booming cumulative feedback, which can be fixed by building a 32
+bit version. arm-wt-22k/Makefile:
 
-	EAS_SetParameter(pEASData, EAS_MODULE_REVERB, EAS_PARAM_REVERB_PRESET,
-		     EAS_PARAM_REVERB_CHAMBER);
+	LOCAL_CFLAGS+= -O2 -m32 -std=gnu99 \ 
 
-to:
+This requires installing gcc-multilib and ia32-libs to get 32 bit
+headers and libraries.
 
-	EAS_SetParameter(pEASData, EAS_MODULE_REVERB, EAS_PARAM_REVERB_PRESET,
-		     EAS_PARAM_REVERB_ROOM);
+	sudo apt-get install gcc-multilib ia32-libs
 
-I think this is probably due to EAS\_I32 being defined as a long which
-is 64 bits on an x64 platform.
+You will then need to build 32 bit versions of libmidi.so, playmidi,
+etc. midi/Makefile:
+
+	CFLAGS = -O2 -m32 -fPIC -L/usr/local/lib -Wl,-R/usr/local/lib -Wl,-z,relro
+
