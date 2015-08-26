@@ -46,6 +46,9 @@ static snd_pcm_t *handle;
 // thread
 static pthread_t thread;
 
+// mutex
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 // flag
 static long flag;
 
@@ -111,13 +114,33 @@ MIDI_RESULT MIDI_PlayFile(char *path, MIDI_HANDLE *handle)
     file.path = path;
     file.fd = 0;
 
+    // lock
+    pthread_mutex_lock(&mutex);
+
     // open file
     if ((result = EAS_OpenFile(pEASData, &file, handle)) != EAS_SUCCESS)
+    {
+        // unlock
+        pthread_mutex_unlock(&mutex);      
 	return result;
+    }
+
+    // unlock
+    pthread_mutex_unlock(&mutex);
+
+    // lock
+    pthread_mutex_lock(&mutex);
 
     // prepare
     if ((result =  EAS_Prepare(pEASData, *handle)) != EAS_SUCCESS)
+    {
+        // unlock
+        pthread_mutex_unlock(&mutex);      
 	return result;
+    }
+
+    // unlock
+    pthread_mutex_unlock(&mutex);
 
     return MIDI_SUCCESS;
 }
@@ -127,9 +150,19 @@ MIDI_RESULT MIDI_CloseFile(MIDI_HANDLE handle)
 {
     EAS_RESULT result;
 
+    // lock
+    pthread_mutex_lock(&mutex);
+
     // close midi stream
     if ((result = EAS_CloseFile(pEASData, handle)) != EAS_SUCCESS)
+    {
+        // unlock
+        pthread_mutex_unlock(&mutex);      
 	return result;
+    }
+
+    // unlock
+    pthread_mutex_unlock(&mutex);
 
     return MIDI_SUCCESS;
 }
@@ -138,10 +171,19 @@ MIDI_RESULT MIDI_State(MIDI_HANDLE handle, MIDI_STATE *state)
 {
     EAS_RESULT result;
 
+    // lock
+    pthread_mutex_lock(&mutex);
+
     // check stream state
-    if ((result = EAS_State(pEASData, handle, state)) !=
-	EAS_SUCCESS)
+    if ((result = EAS_State(pEASData, handle, state)) != EAS_SUCCESS)
+    {
+        // unlock
+        pthread_mutex_unlock(&mutex);      
 	return result;
+    }
+
+    // unlock
+    pthread_mutex_unlock(&mutex);
 
     return MIDI_SUCCESS;
 }
@@ -150,10 +192,20 @@ MIDI_RESULT MIDI_OpenStream(MIDI_HANDLE *handle)
 {
     EAS_RESULT result;
 
+    // lock
+    pthread_mutex_lock(&mutex);
+
     // open midi stream
     if ((result = EAS_OpenMIDIStream(pEASData, handle, NULL)) !=
 	EAS_SUCCESS)
+    {
+        // unlock
+        pthread_mutex_unlock(&mutex);      
 	return result;
+    }
+
+    // unlock
+    pthread_mutex_unlock(&mutex);
 
     return MIDI_SUCCESS;
 }
@@ -163,10 +215,20 @@ MIDI_RESULT MIDI_WriteStream(MIDI_HANDLE handle, char *data, long size)
 {
     EAS_RESULT result;
 
+    // lock
+    pthread_mutex_lock(&mutex);
+
     // write midi stream
     if ((result = EAS_WriteMIDIStream(pEASData, handle, data,
 				      size)) != EAS_SUCCESS)
+    {
+        // unlock
+        pthread_mutex_unlock(&mutex);      
 	return result;
+    }
+
+    // unlock
+    pthread_mutex_unlock(&mutex);
 
     return MIDI_SUCCESS;
 }
@@ -176,9 +238,19 @@ MIDI_RESULT MIDI_CloseStream(MIDI_HANDLE handle)
 {
     EAS_RESULT result;
 
+    // lock
+    pthread_mutex_lock(&mutex);
+
     // close midi stream
     if ((result = EAS_CloseMIDIStream(pEASData, handle)) != EAS_SUCCESS)
+    {
+        // unlock
+        pthread_mutex_unlock(&mutex);      
 	return result;
+    }
+
+    // unlock
+    pthread_mutex_unlock(&mutex);
 
     return MIDI_SUCCESS;
 }
@@ -228,11 +300,21 @@ void *render(void *data)
 	count = 0;
 	while (count < bufferSize)
 	{
+	    // lock
+	    pthread_mutex_lock(&mutex);
+
 	    // render
 	    if ((result = EAS_Render(pEASData,  buffer + count,
 				     pLibConfig->mixBufferSize,
 				     &numGenerated)) != EAS_SUCCESS)
+	    {
+	        // unlock
+	        pthread_mutex_unlock(&mutex);
 		break;
+	    }
+
+	    // unlock
+	    pthread_mutex_unlock(&mutex);
 
 	    // calculate count in samples
 	    count += numGenerated * pLibConfig->numChannels;
