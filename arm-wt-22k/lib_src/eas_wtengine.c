@@ -32,8 +32,8 @@
  * includes
  *------------------------------------
 */
-#include "log/log.h"
-#include <cutils/log.h>
+// #include "log/log.h"
+// #include <cutils/log.h>
 
 #include "eas_types.h"
 #include "eas_math.h"
@@ -41,6 +41,9 @@
 #include "eas_sndlib.h"
 #include "eas_wtengine.h"
 #include "eas_mixer.h"
+
+#define ALOGE(...)
+#define android_errorWriteLog(...)
 
 /*----------------------------------------------------------------------------
  * prototypes

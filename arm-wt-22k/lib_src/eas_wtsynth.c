@@ -28,8 +28,8 @@
 */
 
 // includes
-#include "log/log.h"
-#include <cutils/log.h>
+// #include "log/log.h"
+// #include <cutils/log.h>
 
 #include "eas_data.h"
 #include "eas_report.h"
@@ -46,6 +46,9 @@
 #ifdef _METRICS_ENABLED
 #include "eas_perf.h"
 #endif
+
+#define ALOGE(...)
+#define android_errorWriteLog(...)
 
 /* local prototypes */
 static EAS_RESULT WT_Initialize(S_VOICE_MGR *pVoiceMgr);
