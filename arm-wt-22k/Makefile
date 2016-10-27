@@ -11,6 +11,7 @@ CC = gcc
 AS = as
 LD = gcc
 AR = ar
+CP = cp
 
 TARGET_ARCH = arm
 
@@ -115,4 +116,4 @@ endif
 $(LOCAL_COPY_HEADERS_TO)/$(LOCAL_MODULE):	$(LOCAL_SRC_FILES)
 	if test ! -d $(LOCAL_COPY_HEADERS_TO); then mkdir $(LOCAL_COPY_HEADERS_TO); fi
 	$(CC) -o $@ --shared $(foreach include, $(LOCAL_C_INCLUDES), -I $(include)) $(LOCAL_CFLAGS) $(LOCAL_SRC_FILES)
-	cp $(LOCAL_COPY_HEADERS) $(LOCAL_COPY_HEADERS_TO)
+	$(CP) $(LOCAL_COPY_HEADERS) $(LOCAL_COPY_HEADERS_TO)
