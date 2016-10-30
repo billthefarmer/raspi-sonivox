@@ -1,6 +1,7 @@
 # Makefile
 
 CC = gcc
+RM = rm
 
 CFLAGS = -O2 -fPIC -L/usr/local/lib -Wl,-R/usr/local/lib -Wl,-z,relro
 LIBS = -lsonivox -lasound -lpthread
@@ -16,3 +17,6 @@ playmidi:	playmidi.c
 
 sonivox:	sonivox.c
 	$(CC) -o $@ $< $(CFLAGS) $(ULIBS)
+
+clean:
+	$(RM) *.so playmidi sonivox

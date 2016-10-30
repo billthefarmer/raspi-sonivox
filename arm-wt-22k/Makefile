@@ -12,6 +12,7 @@ AS = as
 LD = gcc
 AR = ar
 CP = cp
+RM = rm
 
 TARGET_ARCH = arm
 
@@ -60,8 +61,8 @@ LOCAL_SRC_FILES = \
 #	host_src/eas_main.c \
 #	host_src/eas_wave.c
 
-LOCAL_CFLAGS+= -O2 -mcpu=arm1176jzf-s -mfpu=vfp -std=gnu99 \
-	-fPIC -Wl,-z,relro -Wl,-soname,libsonivox.so \
+LOCAL_CFLAGS += -O2 -mcpu=arm1176jzf-s -mfpu=vfp -std=gnu99 \
+	-fPIC -Wl,-z,relro -Wl,-soname,libsonivox.so -lm \
 	-D UNIFIED_DEBUG_MESSAGES -D EAS_WT_SYNTH \
 	-D NUM_OUTPUT_CHANNELS=2 \
 	-D _SAMPLE_RATE_22050 -D MAX_SYNTH_VOICES=64 \
@@ -77,7 +78,7 @@ LOCAL_CFLAGS+= -O2 -mcpu=arm1176jzf-s -mfpu=vfp -std=gnu99 \
 # -D _IMA_DECODER (needed for IMA-ADPCM wave files)
 # -D _CHORUS_ENABLED
 
-LOCAL_C_INCLUDES:= \
+LOCAL_C_INCLUDES := \
 	host_src \
 	lib_src
 
@@ -117,3 +118,6 @@ $(LOCAL_COPY_HEADERS_TO)/$(LOCAL_MODULE):	$(LOCAL_SRC_FILES)
 	if test ! -d $(LOCAL_COPY_HEADERS_TO); then mkdir $(LOCAL_COPY_HEADERS_TO); fi
 	$(CC) -o $@ --shared $(foreach include, $(LOCAL_C_INCLUDES), -I $(include)) $(LOCAL_CFLAGS) $(LOCAL_SRC_FILES)
 	$(CP) $(LOCAL_COPY_HEADERS) $(LOCAL_COPY_HEADERS_TO)
+
+clean:
+	$(RM) $(LOCAL_COPY_HEADERS_TO)/$(LOCAL_MODULE)
