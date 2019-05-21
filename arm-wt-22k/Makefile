@@ -13,6 +13,7 @@ LD = gcc
 AR = ar
 CP = cp
 RM = rm
+SED = sed
 
 TARGET_ARCH = arm
 
@@ -80,7 +81,8 @@ LOCAL_CFLAGS += -O2 -mcpu=arm1176jzf-s -mfpu=vfp -std=gnu99 \
 
 LOCAL_C_INCLUDES := \
 	host_src \
-	lib_src
+	lib_src \
+	include
 
 LOCAL_ARM_MODE := arm
 
@@ -116,6 +118,7 @@ endif
 
 $(LOCAL_COPY_HEADERS_TO)/$(LOCAL_MODULE):	$(LOCAL_SRC_FILES)
 	if test ! -d $(LOCAL_COPY_HEADERS_TO); then mkdir $(LOCAL_COPY_HEADERS_TO); fi
+	$(SED) -i 's/#include/.include/' lib_src/*.s
 	$(CC) -o $@ --shared $(foreach include, $(LOCAL_C_INCLUDES), -I $(include)) $(LOCAL_CFLAGS) $(LOCAL_SRC_FILES)
 	$(CP) $(LOCAL_COPY_HEADERS) $(LOCAL_COPY_HEADERS_TO)
 

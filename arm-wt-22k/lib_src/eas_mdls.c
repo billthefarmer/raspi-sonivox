@@ -114,6 +114,8 @@
 /* this define allows us to use the sndlib.h structures as RW memory */
 #define SCNST
 
+#include "log/log.h"
+
 #include "eas_data.h"
 #include "eas_host.h"
 #include "eas_mdls.h"
@@ -121,6 +123,7 @@
 #include "dls.h"
 #include "dls2.h"
 #include "eas_report.h"
+#include <string.h>
 
 //2 we should replace log10() function with fixed point routine in ConvertSampleRate()
 /* lint is choking on the ARM math.h file, so we declare the log10 function here */
@@ -602,6 +605,7 @@ EAS_RESULT DLSParser (EAS_HW_DATA_HANDLE hwInstData, EAS_FILE_HANDLE fileHandle,
         if ((dls.regionCount == 0) || (dls.regionCount > DLS_MAX_REGION_COUNT))
         {
             { /* dpp: EAS_ReportEx(_EAS_SEVERITY_ERROR, "DLS file contains invalid #regions [%u]\n", dls.regionCount); */ }
+            EAS_HWFree(dls.hwInstData, dls.wsmpData);
             return EAS_ERROR_FILE_FORMAT;
         }
 
@@ -609,6 +613,7 @@ EAS_RESULT DLSParser (EAS_HW_DATA_HANDLE hwInstData, EAS_FILE_HANDLE fileHandle,
         if ((dls.artCount == 0) || (dls.artCount > DLS_MAX_ART_COUNT))
         {
             { /* dpp: EAS_ReportEx(_EAS_SEVERITY_ERROR, "DLS file contains invalid #articulations [%u]\n", dls.regionCount); */ }
+            EAS_HWFree(dls.hwInstData, dls.wsmpData);
             return EAS_ERROR_FILE_FORMAT;
         }
 
@@ -616,6 +621,7 @@ EAS_RESULT DLSParser (EAS_HW_DATA_HANDLE hwInstData, EAS_FILE_HANDLE fileHandle,
         if ((dls.instCount == 0) || (dls.instCount > DLS_MAX_INST_COUNT))
         {
             { /* dpp: EAS_ReportEx(_EAS_SEVERITY_ERROR, "DLS file contains invalid #instruments [%u]\n", dls.instCount); */ }
+            EAS_HWFree(dls.hwInstData, dls.wsmpData);
             return EAS_ERROR_FILE_FORMAT;
         }
 
@@ -636,6 +642,7 @@ EAS_RESULT DLSParser (EAS_HW_DATA_HANDLE hwInstData, EAS_FILE_HANDLE fileHandle,
         /* calculate final memory size */
         size = (EAS_I32) sizeof(S_EAS) + instSize + rgnPoolSize + artPoolSize + (2 * waveLenSize) + (EAS_I32) dls.wavePoolSize;
         if (size <= 0) {
+            EAS_HWFree(dls.hwInstData, dls.wsmpData);
             return EAS_ERROR_FILE_FORMAT;
         }
 
@@ -644,6 +651,7 @@ EAS_RESULT DLSParser (EAS_HW_DATA_HANDLE hwInstData, EAS_FILE_HANDLE fileHandle,
         if (dls.pDLS == NULL)
         {
             { /* dpp: EAS_ReportEx(_EAS_SEVERITY_ERROR, "EAS_HWMalloc failed for DLS memory allocation size %ld\n", size); */ }
+            EAS_HWFree(dls.hwInstData, dls.wsmpData);
             return EAS_ERROR_MALLOC_FAILED;
         }
         EAS_HWMemSet(dls.pDLS, 0, size);
@@ -784,6 +792,11 @@ static EAS_RESULT NextChunk (SDLS_SYNTHESIZER_DATA *pDLSData, EAS_I32 *pPos, EAS
     /* read the chunk size */
     if ((result = EAS_HWGetDWord(pDLSData->hwInstData, pDLSData->fileHandle, pSize, EAS_FALSE)) != EAS_SUCCESS)
         return result;
+
+    if (*pSize < 0) {
+        ALOGE("b/37093318");
+        return EAS_ERROR_FILE_FORMAT;
+    }
 
     /* get form type for RIFF and LIST types */
     if ((*pChunkType == CHUNK_RIFF) || (*pChunkType == CHUNK_LIST))
@@ -1305,7 +1318,56 @@ static EAS_RESULT Parse_data (SDLS_SYNTHESIZER_DATA *pDLSData, EAS_I32 pos, EAS_
     return EAS_SUCCESS;
 }
 #elif defined(_16_BIT_SAMPLES)
-#error "16-bit DLS conversion not implemented yet"
+static EAS_RESULT Parse_data (SDLS_SYNTHESIZER_DATA *pDLSData, EAS_I32 pos, EAS_I32 size, S_WSMP_DATA *pWsmp, EAS_SAMPLE *pSample, EAS_U32 sampleLen)
+{
+    EAS_RESULT result;
+    EAS_U8 convBuf[SAMPLE_CONVERT_CHUNK_SIZE];
+    EAS_I32 count = 0;
+    EAS_I32 i;
+    EAS_I16 *p;
+
+    /* seek to start of chunk */
+    if ((result = EAS_HWFileSeek(pDLSData->hwInstData, pDLSData->fileHandle, pos)) != EAS_SUCCESS)
+        return result;
+
+        p = pSample;
+
+        while (size)
+        {
+            /* read a small chunk of data and convert it */
+            count = (size < SAMPLE_CONVERT_CHUNK_SIZE ? size : SAMPLE_CONVERT_CHUNK_SIZE);
+            if ((result = EAS_HWReadFile(pDLSData->hwInstData, pDLSData->fileHandle, convBuf, count, &count)) != EAS_SUCCESS)
+            {
+                return result;
+            }
+            size -= count;
+            if (pWsmp->bitsPerSample == 16)
+            {
+                memcpy(p, convBuf, count);
+                p += count >> 1;
+            }
+            else
+            {
+                for(i=0; i<count; i++)
+                {
+                    *p++ = (short)((convBuf[i] ^ 0x80) << 8);
+                }
+            }
+
+        }
+    /* for looped samples, copy the last sample to the end */
+    if (pWsmp->loopLength)
+    {
+        if( (pDLSData->wavePoolOffset + pWsmp->loopLength) >= pDLSData->wavePoolSize )
+        {
+            return EAS_SUCCESS;
+        }
+
+        pSample[(pWsmp->loopStart + pWsmp->loopLength)>>1] = pSample[(pWsmp->loopStart)>>1];
+    }
+
+    return EAS_SUCCESS;
+}
 #else
 #error "Must specifiy _8_BIT_SAMPLES or _16_BIT_SAMPLES"
 #endif
@@ -2088,8 +2150,11 @@ static EAS_RESULT PushcdlStack (EAS_U32 *pStack, EAS_INT *pStackPtr, EAS_U32 val
 {
 
     /* stack overflow, return an error */
-    if (*pStackPtr >= CDL_STACK_SIZE)
+    if (*pStackPtr >= (CDL_STACK_SIZE - 1)) {
+        ALOGE("b/34031018, stackPtr(%d)", *pStackPtr);
+        android_errorWriteLog(0x534e4554, "34031018");
         return EAS_ERROR_FILE_FORMAT;
+    }
 
     /* push the value onto the stack */
     *pStackPtr = *pStackPtr + 1;
